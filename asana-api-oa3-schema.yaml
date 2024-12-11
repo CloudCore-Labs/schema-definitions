@@ -1,0 +1,500 @@
+openapi: 3.0.0
+info:
+  title: Asana API
+  description: Common Asana operations focusing on tasks and projects
+  version: 1.0.0
+  contact:
+    name: Asana API Support
+    url: https://developers.asana.com/docs
+
+servers:
+  - url: https://app.asana.com/api/1.0
+    description: Asana API v1.0
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+  schemas:
+    Task:
+      type: object
+      properties:
+        gid:
+          type: string
+        name:
+          type: string
+        resource_type:
+          type: string
+          enum: [task]
+        completed:
+          type: boolean
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        due_on:
+          type: string
+          format: date
+          nullable: true
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+        assignee:
+          $ref: '#/components/schemas/User'
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        workspace:
+          $ref: '#/components/schemas/Workspace'
+        parent:
+          type: string
+          nullable: true
+        memberships:
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                $ref: '#/components/schemas/Project'
+              section:
+                $ref: '#/components/schemas/Section'
+
+    Project:
+      type: object
+      properties:
+        gid:
+          type: string
+        name:
+          type: string
+        resource_type:
+          type: string
+          enum: [project]
+        owner:
+          $ref: '#/components/schemas/User'
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        current_status:
+          type: object
+          properties:
+            text:
+              type: string
+            color:
+              type: string
+            status:
+              type: string
+        public:
+          type: boolean
+        workspace:
+          $ref: '#/components/schemas/Workspace'
+        
+    Section:
+      type: object
+      properties:
+        gid:
+          type: string
+        name:
+          type: string
+        resource_type:
+          type: string
+          enum: [section]
+        created_at:
+          type: string
+          format: date-time
+        project:
+          $ref: '#/components/schemas/Project'
+
+    User:
+      type: object
+      properties:
+        gid:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        resource_type:
+          type: string
+          enum: [user]
+        workspaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/Workspace'
+
+    Workspace:
+      type: object
+      properties:
+        gid:
+          type: string
+        name:
+          type: string
+        resource_type:
+          type: string
+          enum: [workspace]
+        is_organization:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+              help:
+                type: string
+              phrase:
+                type: string
+
+paths:
+  /tasks:
+    get:
+      summary: Get multiple tasks
+      operationId: getTasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project
+          in: query
+          schema:
+            type: string
+          description: The project to filter tasks by
+        - name: section
+          in: query
+          schema:
+            type: string
+          description: The section to filter tasks by
+        - name: completed_since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: modified_since
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successfully retrieved tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+    
+    post:
+      summary: Create a task
+      operationId: createTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: object
+                  required:
+                    - name
+                    - workspace
+                  properties:
+                    name:
+                      type: string
+                    notes:
+                      type: string
+                    workspace:
+                      type: string
+                    assignee:
+                      type: string
+                    projects:
+                      type: array
+                      items:
+                        type: string
+                    parent:
+                      type: string
+                    due_on:
+                      type: string
+                      format: date
+                    due_at:
+                      type: string
+                      format: date-time
+      responses:
+        '201':
+          description: Successfully created task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /tasks/{task_gid}:
+    get:
+      summary: Get a task
+      operationId: getTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: task_gid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+    
+    put:
+      summary: Update a task
+      operationId: updateTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: task_gid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    notes:
+                      type: string
+                    assignee:
+                      type: string
+                    completed:
+                      type: boolean
+                    due_on:
+                      type: string
+                      format: date
+                    due_at:
+                      type: string
+                      format: date-time
+      responses:
+        '200':
+          description: Successfully updated task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+    delete:
+      summary: Delete a task
+      operationId: deleteTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: task_gid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successfully deleted task
+
+  /projects:
+    get:
+      summary: Get multiple projects
+      operationId: getProjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspace
+          in: query
+          schema:
+            type: string
+          description: The workspace to filter projects by
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+          description: Only return projects whose archived field takes on the value of this parameter
+      responses:
+        '200':
+          description: Successfully retrieved projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+    
+    post:
+      summary: Create a project
+      operationId: createProject
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: object
+                  required:
+                    - name
+                    - workspace
+                  properties:
+                    name:
+                      type: string
+                    notes:
+                      type: string
+                    workspace:
+                      type: string
+                    public:
+                      type: boolean
+                    due_date:
+                      type: string
+                      format: date
+      responses:
+        '201':
+          description: Successfully created project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Project'
+
+  /projects/{project_gid}/sections:
+    get:
+      summary: Get sections in a project
+      operationId: getProjectSections
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_gid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved sections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Section'
+    
+    post:
+      summary: Add section to project
+      operationId: createProjectSection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_gid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                    insert_before:
+                      type: string
+                    insert_after:
+                      type: string
+      responses:
+        '201':
+          description: Successfully created section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Section'
+
+  /workspaces:
+    get:
+      summary: Get multiple workspaces
+      operationId: getWorkspaces
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved workspaces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workspace'
