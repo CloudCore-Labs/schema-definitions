@@ -19,6 +19,18 @@ components:
       bearerFormat: JWT
 
   schemas:
+    MessageResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        channel:
+          type: string
+        ts:
+          type: string
+        message:
+          $ref: '#/components/schemas/Message'
+
     Message:
       type: object
       properties:
@@ -437,3 +449,369 @@ paths:
                     additionalProperties:
                       type: string
                       description: URL to emoji image or alias to another emoji
+
+  /chat.update:
+    post:
+      summary: Update a message
+      operationId: updateMessage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel
+                - ts
+              properties:
+                channel:
+                  type: string
+                ts:
+                  type: string
+                  description: Timestamp of message to update
+                text:
+                  type: string
+                blocks:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Block'
+                parse:
+                  type: string
+                  enum: [none, full]
+                link_names:
+                  type: boolean
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /chat.delete:
+    post:
+      summary: Delete a message
+      operationId: deleteMessage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel
+                - ts
+              properties:
+                channel:
+                  type: string
+                ts:
+                  type: string
+                  description: Timestamp of message to delete
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  channel:
+                    type: string
+                  ts:
+                    type: string
+
+  /chat.scheduleMessage:
+    post:
+      summary: Schedule a message to be sent later
+      operationId: scheduleMessage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel
+                - text
+                - post_at
+              properties:
+                channel:
+                  type: string
+                text:
+                  type: string
+                post_at:
+                  type: integer
+                  description: Unix timestamp for when message should be sent
+                blocks:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Block'
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  scheduled_message_id:
+                    type: string
+                  post_at:
+                    type: integer
+                  channel:
+                    type: string
+
+  /search.messages:
+    get:
+      summary: Search messages
+      operationId: searchMessages
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [score, timestamp]
+        - name: sort_dir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: count
+          in: query
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  messages:
+                    $ref: '#/components/schemas/SearchResult'
+
+  /conversations.list:
+    get:
+      summary: List all channels
+      operationId: listChannels
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: exclude_archived
+          in: query
+          schema:
+            type: boolean
+        - name: types
+          in: query
+          schema:
+            type: string
+            description: Comma-separated list of channel types (public_channel, private_channel, mpim, im)
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Channel'
+
+  /conversations.create:
+    post:
+      summary: Create a channel
+      operationId: createChannel
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                is_private:
+                  type: boolean
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  channel:
+                    $ref: '#/components/schemas/Channel'
+
+  /users.list:
+    get:
+      summary: List all users
+      operationId: listUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  members:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /emoji.add:
+    post:
+      summary: Add a custom emoji
+      operationId: addEmoji
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - image
+              properties:
+                name:
+                  type: string
+                  description: Name of the emoji without colons
+                image:
+                  type: string
+                  format: binary
+                  description: Image file for the emoji
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  emoji:
+                    $ref: '#/components/schemas/Emoji'
+
+  /emoji.remove:
+    post:
+      summary: Remove a custom emoji
+      operationId: removeEmoji
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Name of the emoji to remove
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /conversations.replies:
+    get:
+      summary: Get a thread's replies
+      operationId: getThreadReplies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: channel
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: ts
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
