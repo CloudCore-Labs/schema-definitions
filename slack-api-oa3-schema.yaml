@@ -19,6 +19,59 @@ components:
       bearerFormat: JWT
 
   schemas:
+    Message:
+      type: object
+      properties:
+        text:
+          type: string
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Block'
+        thread_ts:
+          type: string
+          description: Timestamp of the parent message to reply to
+        reply_broadcast:
+          type: boolean
+          description: Used in conjunction with thread_ts to broadcast a thread reply
+        unfurl_links:
+          type: boolean
+        unfurl_media:
+          type: boolean
+        parse:
+          type: string
+          enum: [none, full]
+        mrkdwn:
+          type: boolean
+          default: true
+
+    Block:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [section, divider, header, image, actions, context]
+        text:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [plain_text, mrkdwn]
+            text:
+              type: string
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              text:
+                type: string
+        accessory:
+          type: object
+          description: Block accessory like button or select menu
+
     User:
       type: object
       properties:
@@ -162,6 +215,24 @@ components:
             page_count:
               type: integer
 
+    ThreadInfo:
+      type: object
+      properties:
+        thread_ts:
+          type: string
+        total_replies:
+          type: integer
+        reply_users_count:
+          type: integer
+        reply_users:
+          type: array
+          items:
+            type: string
+        last_reply:
+          type: string
+        unread_replies:
+          type: integer
+
     Emoji:
       type: object
       properties:
@@ -181,112 +252,6 @@ components:
           type: string
         available:
           type: boolean
-
-    ThreadInfo:
-      type: object
-      properties:
-        thread_ts:
-          type: string
-        total_replies:
-          type: integer
-        reply_users_count:
-          type: integer
-        reply_users:
-          type: array
-          items:
-            type: string
-        last_reply:
-          type: string
-        unread_replies:
-          type: integer
-
-    Message:
-      type: object
-      properties:
-        text:
-          type: string
-        blocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Block'
-        thread_ts:
-          type: string
-          description: Timestamp of the parent message to reply to
-        reply_broadcast:
-          type: boolean
-          description: Used in conjunction with thread_ts to broadcast a thread reply
-        unfurl_links:
-          type: boolean
-        unfurl_media:
-          type: boolean
-        parse:
-          type: string
-          enum: [none, full]
-        mrkdwn:
-          type: boolean
-          default: true
-
-    Block:
-      type: object
-      properties:
-        type:
-          type: string
-          enum: [section, divider, header, image, actions, context]
-        text:
-          type: object
-          properties:
-            type:
-              type: string
-              enum: [plain_text, mrkdwn]
-            text:
-              type: string
-        fields:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-              text:
-                type: string
-        accessory:
-          type: object
-          description: Block accessory like button or select menu
-
-    MessageResponse:
-      type: object
-      properties:
-        ok:
-          type: boolean
-        channel:
-          type: string
-        ts:
-          type: string
-        message:
-          $ref: '#/components/schemas/Message'
-
-    Reaction:
-      type: object
-      properties:
-        name:
-          type: string
-        count:
-          type: integer
-        users:
-          type: array
-          items:
-            type: string
-
-    Error:
-      type: object
-      properties:
-        ok:
-          type: boolean
-        error:
-          type: string
-        warning:
-          type: string
-          nullable: true
 
 paths:
   /chat.postMessage:
@@ -328,69 +293,44 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  channel:
+                    type: string
+                  ts:
+                    type: string
+                  message:
+                    $ref: '#/components/schemas/Message'
 
-  /chat.update:
+  /files.upload:
     post:
-      summary: Update a message
-      operationId: updateMessage
+      summary: Upload a file
+      operationId: uploadFile
       security:
         - bearerAuth: []
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               required:
-                - channel
-                - ts
+                - file
               properties:
-                channel:
+                file:
                   type: string
-                ts:
+                  format: binary
+                filename:
                   type: string
-                  description: Timestamp of message to update
-                text:
+                initial_comment:
                   type: string
-                blocks:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Block'
-                parse:
+                channels:
                   type: string
-                  enum: [none, full]
-                link_names:
-                  type: boolean
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-
-  /chat.delete:
-    post:
-      summary: Delete a message
-      operationId: deleteMessage
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - channel
-                - ts
-              properties:
-                channel:
+                  description: Comma-separated list of channel IDs
+                thread_ts:
                   type: string
-                ts:
-                  type: string
-                  description: Timestamp of message to delete
       responses:
         '200':
           description: Success response
@@ -401,10 +341,8 @@ paths:
                 properties:
                   ok:
                     type: boolean
-                  channel:
-                    type: string
-                  ts:
-                    type: string
+                  file:
+                    $ref: '#/components/schemas/File'
 
   /reactions.add:
     post:
@@ -478,611 +416,6 @@ paths:
                   ok:
                     type: boolean
 
-  /reactions.get:
-    get:
-      summary: Get reactions for an item
-      operationId: getReactions
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: channel
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: timestamp
-          in: query
-          required: true
-          schema:
-            type: string
-          description: Message timestamp
-        - name: full
-          in: query
-          schema:
-            type: boolean
-            default: false
-          description: If true, returns detailed info about users who reacted
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  type:
-                    type: string
-                  message:
-                    type: object
-                    properties:
-                      reactions:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Reaction'
-
-  /chat.getPermalink:
-    get:
-      summary: Get permanent link to a message
-      operationId: getPermalink
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: channel
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: message_ts
-          in: query
-          required: true
-          schema:
-            type: string
-          description: Message timestamp
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  permalink:
-                    type: string
-                  channel:
-                    type: string
-
-  /chat.scheduleMessage:
-    post:
-      summary: Schedule a message to be sent later
-      operationId: scheduleMessage
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - channel
-                - text
-                - post_at
-              properties:
-                channel:
-                  type: string
-                text:
-                  type: string
-                post_at:
-                  type: integer
-                  description: Unix timestamp for when message should be sent
-                blocks:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Block'
-                thread_ts:
-                  type: string
-                reply_broadcast:
-                  type: boolean
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  scheduled_message_id:
-                    type: string
-                  channel:
-                    type: string
-                                      post_at:
-                    type: integer
-
-  /files.upload:
-    post:
-      summary: Upload a file
-      operationId: uploadFile
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - file
-              properties:
-                file:
-                  type: string
-                  format: binary
-                filename:
-                  type: string
-                initial_comment:
-                  type: string
-                channels:
-                  type: string
-                  description: Comma-separated list of channel IDs
-                thread_ts:
-                  type: string
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  file:
-                    $ref: '#/components/schemas/File'
-
-  /files.list:
-    get:
-      summary: List files
-      operationId: listFiles
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: channel
-          in: query
-          schema:
-            type: string
-        - name: user
-          in: query
-          schema:
-            type: string
-        - name: ts_from
-          in: query
-          schema:
-            type: integer
-        - name: ts_to
-          in: query
-          schema:
-            type: integer
-        - name: types
-          in: query
-          schema:
-            type: string
-            description: Comma-separated list of file types
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  files:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/File'
-                  paging:
-                    type: object
-                    properties:
-                      count:
-                        type: integer
-                      total:
-                        type: integer
-                      page:
-                        type: integer
-                      pages:
-                        type: integer
-
-  /search.messages:
-    get:
-      summary: Search messages
-      operationId: searchMessages
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: query
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [score, timestamp]
-        - name: sort_dir
-          in: query
-          schema:
-            type: string
-            enum: [asc, desc]
-        - name: count
-          in: query
-          schema:
-            type: integer
-        - name: page
-          in: query
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  messages:
-                    $ref: '#/components/schemas/SearchResult'
-
-  /conversations.list:
-    get:
-      summary: List channels
-      operationId: listChannels
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: exclude_archived
-          in: query
-          schema:
-            type: boolean
-        - name: types
-          in: query
-          schema:
-            type: string
-            description: Comma-separated list of channel types (public_channel, private_channel, mpim, im)
-        - name: limit
-          in: query
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  channels:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Channel'
-                  response_metadata:
-                    type: object
-                    properties:
-                      next_cursor:
-                        type: string
-
-  /conversations.create:
-    post:
-      summary: Create a channel
-      operationId: createChannel
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                is_private:
-                  type: boolean
-                user_ids:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  channel:
-                    $ref: '#/components/schemas/Channel'
-
-  /conversations.join:
-    post:
-      summary: Join a channel
-      operationId: joinChannel
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - channel
-              properties:
-                channel:
-                  type: string
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  channel:
-                    $ref: '#/components/schemas/Channel'
-
-  /conversations.invite:
-    post:
-      summary: Invite users to a channel
-      operationId: inviteToChannel
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - channel
-                - users
-              properties:
-                channel:
-                  type: string
-                users:
-                  type: string
-                  description: Comma-separated list of user IDs
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  channel:
-                    $ref: '#/components/schemas/Channel'
-
-  /users.list:
-    get:
-      summary: List users
-      operationId: listUsers
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-        - name: cursor
-          in: query
-          schema:
-            type: string
-        - name: include_locale
-          in: query
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  members:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
-                  response_metadata:
-                    type: object
-                    properties:
-                      next_cursor:
-                        type: string
-
-  /users.getPresence:
-    get:
-      summary: Get user's presence
-      operationId: getUserPresence
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: user
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  presence:
-                    type: string
-                    enum: [active, away]
-                  online:
-                    type: boolean
-                  auto_away:
-                    type: boolean
-                  manual_away:
-                    type: boolean
-                  connection_count:
-                    type: integer
-                  last_activity:
-                    type: integer
-
-  /users.setPresence:
-    post:
-      summary: Set user's presence
-      operationId: setUserPresence
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - presence
-              properties:
-                presence:
-                  type: string
-                  enum: [auto, away]
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-
-  /conversations.replies:
-    get:
-      summary: Get replies in a thread
-      operationId: getThreadReplies
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: channel
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: ts
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-        - name: cursor
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  messages:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Message'
-                  has_more:
-                    type: boolean
-                  response_metadata:
-                    type: object
-                    properties:
-                      next_cursor:
-                        type: string
-
-  /conversations.history:
-    get:
-      summary: Get channel history
-      operationId: getChannelHistory
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: channel
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: latest
-          in: query
-          schema:
-            type: string
-        - name: oldest
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-        - name: inclusive
-          in: query
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  messages:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Message'
-                  has_more:
-                    type: boolean
-                  pin_count:
-                    type: integer
-                  channel_actions_ts:
-                    type: string
-                  channel_actions_count:
-                    type: integer
-
   /emoji.list:
     get:
       summary: List custom emoji for a team
@@ -1104,139 +437,3 @@ paths:
                     additionalProperties:
                       type: string
                       description: URL to emoji image or alias to another emoji
-
-  /emoji.add:
-    post:
-      summary: Add a custom emoji
-      operationId: addEmoji
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - name
-                - image
-              properties:
-                name:
-                  type: string
-                  description: Name of the emoji without colons
-                image:
-                  type: string
-                  format: binary
-                  description: Image file for the emoji
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  emoji:
-                    $ref: '#/components/schemas/Emoji'
-
-  /emoji.remove:
-    post:
-      summary: Remove a custom emoji
-      operationId: removeEmoji
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                  description: Name of the emoji to remove without colons
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-
-  /emoji.alias:
-    post:
-      summary: Create an alias for an existing emoji
-      operationId: createEmojiAlias
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-                - alias_for
-              properties:
-                name:
-                  type: string
-                  description: Name for the new emoji alias without colons
-                alias_for:
-                  type: string
-                  description: Name of the target emoji without colons
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  emoji:
-                    $ref: '#/components/schemas/Emoji'
-
-  /emoji.adminList:
-    get:
-      summary: List all emoji with additional admin details
-      operationId: listEmojiAdmin
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: cursor
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 100
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  emoji:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Emoji'
-                  response_metadata:
-                    type: object
-                    properties:
-                      next_cursor:
-                        type: string
