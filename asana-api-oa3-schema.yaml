@@ -261,23 +261,6 @@ components:
                   section:
                     type: string
                     default: "1208951390311550"  # Backlog section
-            custom_fields:
-              type: object
-              properties:
-                "1208951390311554":  # Priority field GID
-                  type: object
-                  properties:
-                    enum_value:
-                      type: string
-                      enum: ["High", "Medium", "Low"]
-                      default: "Medium"
-                "1208951390311559":  # Status field GID
-                  type: object
-                  properties:
-                    enum_value:
-                      type: string
-                      enum: ["On Track", "Off Track", "At Risk"]
-                      default: "On Track"
 
     TaskUpdateRequest:
       type: object
@@ -295,21 +278,6 @@ components:
               format: date
             completed:
               type: boolean
-            custom_fields:
-              type: object
-              properties:
-                "1208951390311554":  # Priority field GID
-                  type: object
-                  properties:
-                    enum_value:
-                      type: string
-                      enum: ["High", "Medium", "Low"]
-                "1208951390311559":  # Status field GID
-                  type: object
-                  properties:
-                    enum_value:
-                      type: string
-                      enum: ["On Track", "Off Track", "At Risk"]
 
     TaskResponse:
       type: object
@@ -332,29 +300,6 @@ components:
               type: boolean
             permalink_url:
               type: string
-            custom_fields:
-              type: object
-              properties:
-                priority:
-                  type: object
-                  properties:
-                    gid:
-                      type: string
-                    name:
-                      type: string
-                    display_value:
-                      type: string
-                      enum: ["High", "Medium", "Low"]
-                status:
-                  type: object
-                  properties:
-                    gid:
-                      type: string
-                    name:
-                      type: string
-                    display_value:
-                      type: string
-                      enum: ["On Track", "Off Track", "At Risk"]
 
     TaskListResponse:
       type: object
