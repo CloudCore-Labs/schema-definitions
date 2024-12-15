@@ -9,6 +9,43 @@ paths:
     post:
       summary: Create a task
       operationId: createTask
+      parameters:
+        - name: opt_fields
+          in: query
+          description: |
+            Defines which fields to return in the response. Multiple fields can be included as a comma-separated list.
+            Common fields include: name, notes, due_on, completed, permalink_url, tags.name, custom_fields.name, custom_fields.display_value, created_at, completed_at
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+              default: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+          style: form
+          explode: false
       requestBody:
         required: true
         content:
@@ -16,7 +53,7 @@ paths:
             schema:
               $ref: '#/components/schemas/TaskCreateRequest'
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -92,6 +129,42 @@ paths:
           schema:
             type: string
           default: "1208951390311552"
+        - name: opt_fields
+          in: query
+          description: |
+            Defines which fields to return in the response. Multiple fields can be included as a comma-separated list.
+            Common fields include: name, notes, due_on, completed, permalink_url, tags.name, custom_fields.name, custom_fields.display_value, created_at, completed_at
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+              default: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+          style: form
+          explode: false
       responses:
         '200':
           content:
@@ -113,7 +186,7 @@ paths:
             default: "1208951390311549"
       responses:
         '200':
-          description: Successfully retrieved the project's sections
+          description: Successfully retrieved the project sections
           content:
             application/json:
               schema:
@@ -141,6 +214,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagListResponse'
+                
+  /workspaces/{workspace_gid}/tasks/search:
+    get:
+      summary: Get all tasks matching the search term in a workspace
+      operationId: searchTasks
+      parameters:
+        - name: workspace_gid
+          in: path
+          required: true
+          schema:
+            type: string
+            default: "1208951390306863"
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: opt_fields
+          in: query
+          description: |
+            Defines which fields to return in the response. Multiple fields can be included as a comma-separated list.
+            Common fields include: name, notes, due_on, completed, permalink_url, tags.name, custom_fields.name, custom_fields.display_value, created_at, completed_at
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+              default: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+          style: form
+          explode: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
 
   /tags/{tag_gid}/tasks:
     get:
@@ -152,6 +284,42 @@ paths:
           required: true
           schema:
             type: string
+        - name: opt_fields
+          in: query
+          description: |
+            Defines which fields to return in the response. Multiple fields can be included as a comma-separated list.
+            Common fields include: name, notes, due_on, completed, permalink_url, tags.name, custom_fields.name, custom_fields.display_value, created_at, completed_at
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+              default: [
+                "name",
+                "notes", 
+                "due_on",
+                "completed",
+                "permalink_url",
+                "tags.name",
+                "custom_fields.name",
+                "custom_fields.display_value",
+                "created_at",
+                "completed_at"
+              ]
+          style: form
+          explode: false
       responses:
         '200':
           content:
@@ -252,15 +420,7 @@ components:
               type: array
               items:
                 type: string
-              default: ["1208951390311549"]
-            memberships:
-              type: array
-              items:
-                type: object
-                properties:
-                  section:
-                    type: string
-                    default: "1208951390311550"  # Backlog section
+                default: ["1208951390311549"]
 
     TaskUpdateRequest:
       type: object
@@ -279,13 +439,43 @@ components:
             completed:
               type: boolean
 
+    Task:
+      type: object
+      required: [gid, name]
+      properties:
+        gid:
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        due_on:
+          type: string
+          format: date
+        completed:
+          type: boolean
+        permalink_url:
+          type: string
+        created_at:
+          type: string
+        completed_at:
+          type: string
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+        
+    
     TaskResponse:
       type: object
       required: [data]
       properties:
         data:
           type: object
-          required: [gid, name]
           properties:
             gid:
               type: string
@@ -300,6 +490,19 @@ components:
               type: boolean
             permalink_url:
               type: string
+            created_at:
+              type: string
+            completed_at:
+              type: string
+            tags:
+              type: array
+              items:
+                $ref: '#/components/schemas/Tag'
+            custom_fields:
+              type: array
+              items:
+                $ref: '#/components/schemas/CustomField'
+            
 
     TaskListResponse:
       type: object
@@ -308,7 +511,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/TaskResponse'
+            $ref: '#/components/schemas/Task'
 
     TagListResponse:
       type: object
@@ -327,12 +530,6 @@ components:
           type: string
         name:
           type: string
-        color:
-          type: string
-          enum: [dark-pink, dark-green, dark-blue, dark-red, dark-teal, 
-                dark-brown, dark-orange, dark-purple, dark-warm-gray,
-                light-pink, light-green, light-blue, light-red, light-teal,
-                light-brown, light-orange, light-purple, light-warm-gray]
 
     TagActionRequest:
       type: object
@@ -345,6 +542,17 @@ components:
             tag:
               type: string
               description: The GID of the tag to add or remove
+    
+    CustomField:
+      type: object
+      required: [gid, name]
+      properties:
+        gid:
+          type: string
+        name:
+          type: string
+        display_value:
+          type: string
     
     SectionsListResponse:
       type: object
@@ -360,6 +568,4 @@ components:
                 type: string
               name:
                 type: string
-              resource_type:
-                type: string
-                enum: [section]
+      
