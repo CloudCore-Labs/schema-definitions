@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Asana Actions for Agentforce
-  version: '1.0'
+  version: "1.0"
   description: Asana task operations for use in Apex/Flow actions for Agentforce
 
 paths:
@@ -20,30 +20,32 @@ paths:
             type: array
             items:
               type: string
-              enum: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
-              default: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
+              enum:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
+              default:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
           style: form
           explode: false
       requestBody:
@@ -51,13 +53,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaskCreateRequest'
+              $ref: "#/components/schemas/TaskCreateRequest"
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskResponse'
+                $ref: "#/components/schemas/TaskResponse"
 
   /tasks/{task_gid}:
     get:
@@ -70,12 +72,12 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskResponse'
-                
+                $ref: "#/components/schemas/TaskResponse"
+
     put:
       summary: Update a task
       operationId: updateTask
@@ -90,13 +92,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaskUpdateRequest'
+              $ref: "#/components/schemas/TaskUpdateRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskResponse'
+                $ref: "#/components/schemas/TaskResponse"
 
     delete:
       summary: Delete a task
@@ -108,7 +110,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Successfully deleted the task
           content:
             application/json:
@@ -116,9 +118,9 @@ paths:
                 type: object
                 required: [data]
                 properties:
-                  data: 
+                  data:
                     type: object
-  
+
   /sections/{section_gid}/tasks:
     get:
       summary: Get tasks in a section
@@ -139,38 +141,40 @@ paths:
             type: array
             items:
               type: string
-              enum: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
-              default: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
+              enum:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
+              default:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
           style: form
           explode: false
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListResponse'
+                $ref: "#/components/schemas/TaskListResponse"
 
   /projects/{project_gid}/sections:
     get:
@@ -185,18 +189,17 @@ paths:
             type: string
             default: "1208951390311549"
       responses:
-        '200':
+        "200":
           description: Successfully retrieved the project sections
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SectionsListResponse'
-        '400':
+                $ref: "#/components/schemas/SectionsListResponse"
+        "400":
           description: Invalid request
-        '404':
+        "404":
           description: Project not found
-      
-  
+
   /workspaces/{workspace_gid}/tags:
     get:
       summary: Get all tags in a workspace
@@ -209,12 +212,12 @@ paths:
             type: string
             default: "1208951390306863"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TagListResponse'
-                
+                $ref: "#/components/schemas/TagListResponse"
+
   /workspaces/{workspace_gid}/tasks/search:
     get:
       summary: Get all tasks matching the search term in a workspace
@@ -241,38 +244,40 @@ paths:
             type: array
             items:
               type: string
-              enum: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
-              default: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
+              enum:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
+              default:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
           style: form
           explode: false
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListResponse'
+                $ref: "#/components/schemas/TaskListResponse"
 
   /tags/{tag_gid}/tasks:
     get:
@@ -294,38 +299,40 @@ paths:
             type: array
             items:
               type: string
-              enum: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
-              default: [
-                "name",
-                "notes", 
-                "due_on",
-                "completed",
-                "permalink_url",
-                "tags.name",
-                "custom_fields.name",
-                "custom_fields.display_value",
-                "created_at",
-                "completed_at"
-              ]
+              enum:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
+              default:
+                [
+                  "name",
+                  "notes",
+                  "due_on",
+                  "completed",
+                  "permalink_url",
+                  "tags.name",
+                  "custom_fields.name",
+                  "custom_fields.display_value",
+                  "created_at",
+                  "completed_at",
+                ]
           style: form
           explode: false
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListResponse'
+                $ref: "#/components/schemas/TaskListResponse"
 
   /tasks/{task_gid}/tags:
     get:
@@ -338,11 +345,11 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TagListResponse'
+                $ref: "#/components/schemas/TagListResponse"
 
   /tasks/{task_gid}/addTag:
     post:
@@ -359,9 +366,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TagActionRequest'
+              $ref: "#/components/schemas/TagActionRequest"
       responses:
-        '200':
+        "200":
           description: Successfully added tag
           content:
             application/json:
@@ -385,9 +392,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TagActionRequest'
+              $ref: "#/components/schemas/TagActionRequest"
       responses:
-        '200':
+        "200":
           description: Successfully removed tag
           content:
             application/json:
@@ -463,13 +470,12 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/Tag'
+            $ref: "#/components/schemas/Tag"
         custom_fields:
           type: array
           items:
-            $ref: '#/components/schemas/CustomField'
-        
-    
+            $ref: "#/components/schemas/CustomField"
+
     TaskResponse:
       type: object
       required: [data]
@@ -497,12 +503,11 @@ components:
             tags:
               type: array
               items:
-                $ref: '#/components/schemas/Tag'
+                $ref: "#/components/schemas/Tag"
             custom_fields:
               type: array
               items:
-                $ref: '#/components/schemas/CustomField'
-            
+                $ref: "#/components/schemas/CustomField"
 
     TaskListResponse:
       type: object
@@ -511,7 +516,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Task'
+            $ref: "#/components/schemas/Task"
 
     TagListResponse:
       type: object
@@ -520,7 +525,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Tag'
+            $ref: "#/components/schemas/Tag"
 
     Tag:
       type: object
@@ -542,7 +547,7 @@ components:
             tag:
               type: string
               description: The GID of the tag to add or remove
-    
+
     CustomField:
       type: object
       required: [gid, name]
@@ -553,7 +558,7 @@ components:
           type: string
         display_value:
           type: string
-    
+
     SectionsListResponse:
       type: object
       required: [data]
@@ -568,4 +573,3 @@ components:
                 type: string
               name:
                 type: string
-      
