@@ -422,7 +422,7 @@ components:
           type: boolean
         description:
           type: string
-        url:
+        html_url:
           type: string
         clone_url:
           type: string
@@ -459,9 +459,11 @@ components:
           type: string
         content:
           type: string
+        encoding:
+          type: string
         sha:
           type: string
-        url:
+        html_url:
           type: string
           format: uri
 
